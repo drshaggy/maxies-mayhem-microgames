@@ -38,10 +38,10 @@ A new game must be a **mechanic that isn't already here**. Reskinning an existin
 ## Step 3 — test it
 
 ```bash
-npx serve .
+npm start
 ```
 
-Open `/dev/`, pick your game, and play it on **mouse, touch, and keyboard**, at **difficulty 1 and 3**. Confirm: the prompt reads in under a second, it's winnable at 3, and it's fair on a trackpad. A game that hasn't been played in the playground is not done.
+This opens the playground at `http://localhost:5050/dev/`. Pick your game and play it on **mouse, touch, and keyboard**, at **difficulty 1 and 3**. Confirm: the prompt reads in under a second, it's winnable at 3, and it's fair on a trackpad. A game that hasn't been played in the playground is not done.
 
 ## Step 4 — register + PR
 
