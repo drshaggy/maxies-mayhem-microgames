@@ -8,5 +8,6 @@ import stop from './stop.js';
 import jump from './jump.js';
 import catchGame from './catch.js';
 import slice from './slice.js';
+import launch from './launch.js';
 
-export const MICROGAMES = [fetchGame, dodge, chomp, wag, stop, jump, catchGame, slice];
+export const MICROGAMES = [fetchGame, dodge, chomp, wag, stop, jump, catchGame, slice, launch];
