@@ -1,0 +1,15 @@
+{
+  "name": "maxies-mayhem-microgames",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Community microgames for Maxie's Mayhem — plus a local playground to build and test them.",
+  "scripts": {
+    "start": "node serve.mjs",
+    "dev": "node serve.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT"
+}

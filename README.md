@@ -15,13 +15,15 @@ This repo is the home for community submissions. It's pulled into the live game 
 
 ## Run the dev playground
 
-No build step — it's plain ES modules.
+No build step, no dependencies — just Node (≥18):
 
 ```bash
-npx serve .
+npm start
 ```
 
-Open the printed URL at **`/dev/`**. Pick any game from the list and play it with mouse, touch, or keyboard. Use the difficulty buttons to check it stays fair as it ramps.
+That runs a tiny bundled static server (`serve.mjs`) and opens the **playground** at `http://localhost:5050/dev/`. Pick any game from the list and play it with mouse, touch, or keyboard; use the difficulty buttons to check it stays fair as it ramps.
+
+(No npm? Any static server rooted at the repo works too — e.g. `npx serve .`, then open `/dev/`.)
 
 ## Layout
 
