@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maxie's Mayhem — Microgame Playground</title>
+<!-- Resolve the SDK to the vendored dev snapshot. The live site maps it to the
+     real SDK instead, so your microgame's `import … from 'maxie-sdk'` is portable. -->
+<script type="importmap">
+{ "imports": { "maxie-sdk": "./sdk.js" } }
+</script>
+<style>
+  :root{ --bg:#0a0812; --fg:#eceaf5; --muted:#7d7a99; --line:#241f3a; --accent:#d4ff3f; }
+  *{box-sizing:border-box} html,body{margin:0}
+  body{background:var(--bg);color:var(--fg);font:13px ui-monospace,monospace;
+    min-height:100vh;display:flex;flex-direction:column;align-items:center;gap:14px;padding:18px}
+  h1{font-size:15px;color:var(--accent);margin:4px 0}
+  .stage{position:relative;width:512px;max-width:96vw;aspect-ratio:4/3;border:3px solid var(--line);
+    border-radius:8px;background:#000;overflow:hidden}
+  canvas{width:100%;height:100%;display:block;image-rendering:pixelated;touch-action:none}
+  .prompt{position:absolute;top:8px;left:0;right:0;text-align:center;font-weight:700;
+    font-size:20px;text-shadow:2px 2px 0 #000;pointer-events:none}
+  .bar{position:absolute;top:0;left:0;height:5px;background:var(--accent)}
+  .flash{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    font-size:30px;font-weight:700;text-shadow:2px 2px 0 #000;pointer-events:none;opacity:0;transition:opacity .1s}
+  .row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;max-width:560px}
+  button{font:inherit;color:var(--fg);background:#171026;border:1px solid var(--line);
+    border-radius:6px;padding:6px 10px;cursor:pointer}
+  button:hover{border-color:var(--accent)} button.on{border-color:var(--accent);color:var(--accent)}
+  .meta{color:var(--muted)} .meta b{color:var(--fg)}
+</style>
+</head>
+<body>
+<h1>Microgame Playground</h1>
+<div class="stage">
+  <canvas id="c" width="512" height="384"></canvas>
+  <div class="prompt" id="prompt"></div>
+  <div class="bar" id="bar"></div>
+  <div class="flash" id="flash"></div>
+</div>
+<div class="row meta">difficulty <span id="diffbtns"></span> &nbsp; <span id="status"></span></div>
+<div class="row" id="games"></div>
+<p class="meta">mouse / touch / arrows + WASD / Space — <b>R</b> to replay</p>
+
+<script type="module">
+import { VW, VH, makePainter, seededRng } from 'maxie-sdk';
+import { MICROGAMES } from '../index.js';
+
+const SS = 2;
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+ctx.imageSmoothingEnabled = false; ctx.scale(SS, SS);
+const painter = makePainter(ctx);
+const $ = (id) => document.getElementById(id);
+
+// ---- input ----
+const ptr = { x: VW / 2, y: VH / 2, down: false, edge: false };
+const vpos = (e) => { const r = canvas.getBoundingClientRect();
+  return { x: (e.clientX - r.left) / r.width * VW, y: (e.clientY - r.top) / r.height * VH }; };
+canvas.addEventListener('pointerdown', (e) => { Object.assign(ptr, vpos(e), { down: true, edge: true }); });
+canvas.addEventListener('pointermove', (e) => { Object.assign(ptr, vpos(e)); });
+addEventListener('pointerup', () => { ptr.down = false; });
+const KEYS = { left: ['arrowleft', 'a'], right: ['arrowright', 'd'], up: ['arrowup', 'w'], down: ['arrowdown', 's'], action: [' ', 'enter'] };
+const down = new Set(), edge = new Set();
+addEventListener('keydown', (e) => { const k = e.key.toLowerCase(); if (k === 'r') replay();
+  if (!down.has(k)) edge.add(k); down.add(k); if (Object.values(KEYS).flat().includes(k)) e.preventDefault(); });
+addEventListener('keyup', (e) => down.delete(e.key.toLowerCase()));
+const anyHeld = (g) => g.some((k) => down.has(k)), anyEdge = (g) => g.some((k) => edge.has(k));
+
+// ---- run loop ----
+let def = MICROGAMES[0], difficulty = 1, inst = null, g = null, elapsed = 0, duration = 0, ended = null, last = 0;
+
+function start() {
+  ended = null; elapsed = 0; duration = def.time / 1000;
+  g = { w: VW, h: VH, ...painter, ctx, rng: seededRng(), difficulty,
+    pointer: { ...ptr }, tapped: false,
+    held: { left: false, right: false, up: false, down: false, action: false },
+    pressed: { left: false, right: false, up: false, down: false, action: false },
+    timeLeft: 1, palette: def.palette,
+    win: () => { if (!ended) finish('win'); }, lose: () => { if (!ended) finish('lose'); } };
+  inst = def.build(g);
+  $('prompt').textContent = def.prompt;
+  flash('', 0);
+}
+function finish(r) { ended = r; flash(r === 'win' ? 'NICE!' : 'OOF!', 1);
+  setTimeout(() => { if (ended) flash('', 0); }, 700); }
+function flash(t, o) { const f = $('flash'); f.textContent = t; f.style.opacity = o; f.style.color = t === 'NICE!' ? 'var(--accent)' : '#ff5b6e'; }
+function replay() { start(); }
+
+function frame(t) {
+  const dt = Math.min(0.05, (t - last) / 1000 || 0); last = t;
+  if (!ended) {
+    elapsed += dt; g.timeLeft = Math.max(0, 1 - elapsed / duration);
+    g.pointer = { x: ptr.x, y: ptr.y, down: ptr.down };
+    g.tapped = ptr.edge || anyEdge(KEYS.action);
+    g.held = { left: anyHeld(KEYS.left), right: anyHeld(KEYS.right), up: anyHeld(KEYS.up), down: anyHeld(KEYS.down), action: anyHeld(KEYS.action) || ptr.down };
+    g.pressed = { left: anyEdge(KEYS.left), right: anyEdge(KEYS.right), up: anyEdge(KEYS.up), down: anyEdge(KEYS.down), action: anyEdge(KEYS.action) || ptr.edge };
+    ctx.fillStyle = def.palette; ctx.fillRect(0, 0, VW, VH);
+    inst.update(dt);
+    if (!ended && elapsed >= duration) finish(def.goal === 'survive' ? 'win' : 'lose');
+  }
+  $('bar').style.width = (g ? g.timeLeft * 100 : 100) + '%';
+  ptr.edge = false; edge.clear();
+  requestAnimationFrame(frame);
+}
+
+// ---- UI ----
+MICROGAMES.forEach((m) => { const b = document.createElement('button');
+  b.textContent = m.prompt; b.onclick = () => { def = m; paint(); start(); }; b.dataset.id = m.id; $('games').append(b); });
+[1, 2, 3].forEach((d) => { const b = document.createElement('button');
+  b.textContent = d; b.onclick = () => { difficulty = d; paint(); start(); }; b.dataset.diff = d; $('diffbtns').append(b); });
+function paint() {
+  for (const b of $('games').children) b.classList.toggle('on', b.dataset.id === def.id);
+  for (const b of $('diffbtns').children) b.classList.toggle('on', +b.dataset.diff === difficulty);
+  $('status').innerHTML = `<b>${def.name}</b> — goal <b>${def.goal}</b>, ${def.time}ms`;
+}
+paint(); start(); requestAnimationFrame(frame);
+</script>
+</body>
+</html>
