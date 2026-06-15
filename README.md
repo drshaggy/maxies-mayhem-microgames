@@ -6,10 +6,12 @@ This repo is the home for community submissions. It's pulled into the live game 
 
 ## Contribute a microgame
 
+**Building one (especially with an AI agent)? Read [AGENTS.md](AGENTS.md) first** — it covers how to build correctly and, importantly, how to avoid duplicating a mechanic that already exists.
+
 1. Fork this repo.
 2. Add `your-game.js` in the root and register it in `index.js`. See **[SDK.md](SDK.md)** for the full API.
 3. Test it locally (below) — make sure it's winnable at difficulty 1 **and** 3, and plays fairly on a trackpad.
-4. Open a PR. Once merged and pulled into the site, it's in the rotation.
+4. Open a PR. `main` is protected, so all changes land via PR. Once merged and pulled into the site, it's in the rotation.
 
 ## Run the dev playground
 
