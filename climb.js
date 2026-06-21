@@ -1,12 +1,12 @@
 import { defineMicrogame } from 'maxie-sdk';
 
-// CLIMB! — Maxie auto-bounces up vertical platforms (steer ←/→ or drag).
-// Screen wraps like Doodle Jump. Reach the top before the buzzer; fall off and you lose.
+// CLIMB! — auto-bounce up the platforms (steer ←/→ or drag). Screen wraps like
+// Doodle Jump. Reach the top before the buzzer; fall off the bottom and you lose.
 export default defineMicrogame({
   id: 'climb', name: 'Climb', prompt: 'CLIMB!', author: 'drshaggy',
   goal: 'act', time: 4000, palette: '#191a3a',
   build(g) {
-    // constants
+    // ---- constants ----
     const W = g.w, G = 900, BV = 300, SPD = 160, PH = 6, MS = 10;
     const BASE_Y = g.h - 24, LOCK = g.h * 0.45;
     const D = g.difficulty;
@@ -16,19 +16,19 @@ export default defineMicrogame({
     const wrap = (v) => (v % W + W) % W;
     const sy = (a, cam) => BASE_Y - a + cam;
 
-    // procedural platform column (structurally reachable)
+    // ---- procedural platform column (structurally reachable) ----
     const N = landings + 3;
     const plat = [{ x: W / 2, alt: 0 }];
     for (let k = 1; k < N; k++)
       plat.push({ x: wrap(plat[k-1].x + g.rng.range(-reach, +reach)), alt: k * gap });
 
-    // Maxie state
+    // ---- Maxie state ----
     let x = W / 2, alt = 0, vy = BV;             // start mid-air, just bounced off plat[0]
     let cam = 0, prevAlt = 0, phase = 0;         // phase = cosmetic shimmer accumulator
 
     return {
       update(dt) {
-        // steer: keyboard (held) is primary; pointer steers toward touch x
+        // ---- steer: keyboard (held) is primary; pointer steers toward touch x ----
         let dx = 0;
         if (g.held.left)  dx -= SPD * dt;
         if (g.held.right) dx += SPD * dt;
@@ -38,12 +38,12 @@ export default defineMicrogame({
         }
         x = wrap(x + dx);
 
-        // vertical integrate
+        // ---- vertical integrate ----
         prevAlt = alt;
         vy -= G * dt;
         alt += vy * dt;
 
-        // one-way landing (only while falling, crossed-band test)
+        // ---- one-way landing (only while falling, crossed-band test) ----
         if (vy < 0) {
           for (const p of plat) {
             if (p.alt > prevAlt) break;
@@ -53,7 +53,7 @@ export default defineMicrogame({
           }
         }
 
-        // win / lose
+        // ---- win / lose ----
         if (alt >= goal) return g.win();
         cam = Math.max(cam, alt - (BASE_Y - LOCK));
         if (sy(alt, cam) > g.h + MS) return g.lose();
