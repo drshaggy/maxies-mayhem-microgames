@@ -14,5 +14,6 @@ import balance from './balance.js';
 import spot from './spot.js';
 import sort from './sort.js';
 import bark from './bark.js';
+import climb from './climb.js';
 
-export const MICROGAMES = [fetchGame, dodge, chomp, wag, stop, jump, catchGame, slice, launch, repeatGame, balance, spot, sort, bark];
+export const MICROGAMES = [fetchGame, dodge, chomp, wag, stop, jump, catchGame, slice, launch, repeatGame, balance, spot, sort, bark, climb];
